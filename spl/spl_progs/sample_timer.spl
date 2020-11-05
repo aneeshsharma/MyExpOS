@@ -1,4 +1,3 @@
-breakpoint;
 // save sp's value
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
 // switch to kernel stack
@@ -36,6 +35,7 @@ PTLR = [new_process_table + 15];
 if([new_process_table + 4] == CREATED) then
 	[new_process_table + 4] = RUNNING;
 	SP = [new_process_table + 13];
+	breakpoint;
 	ireturn;
 endif;
 
