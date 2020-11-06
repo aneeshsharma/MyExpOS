@@ -1,3 +1,4 @@
+breakpoint;
 // save sp's value
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
 // switch to kernel stack
@@ -20,7 +21,11 @@ alias newPID R2;
 if(currentPID == 0) then
 	newPID = 1;
 else
-	newPID = 0;
+	if(currentPID == 1) then
+		newPID = 2;
+	else
+		newPID = 0;
+	endif;
 endif;
 
 alias new_process_table R3;
