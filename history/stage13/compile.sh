@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STAGE=20
+STAGE=13
 
 DIR=../history/stage$STAGE
 
