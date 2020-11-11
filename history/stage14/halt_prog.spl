@@ -1,0 +1,13 @@
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = TERMINATED;
+alias counter R1;
+alias state R2;
+counter = 1;
+while (counter < MAX_PROC_NUM) do
+	state = [PROCESS_TABLE + counter * 16 + 4];
+	if (state != TERMINATED) then
+		call MOD_5;
+	endif;
+	counter = counter + 1;
+endwhile;
+print "Halt";
+halt;
