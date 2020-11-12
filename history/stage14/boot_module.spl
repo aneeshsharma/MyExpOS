@@ -118,7 +118,7 @@ pid = 3;
 while (pid < MAX_PROC_NUM) do
 	process_table = PROCESS_TABLE + 16 * pid;
 	[process_table + 4] = TERMINATED;
-	pid = pid + 3;
+	pid = pid + 1;
 endwhile;
 
 // entry point for init
