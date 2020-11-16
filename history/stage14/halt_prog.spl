@@ -5,7 +5,6 @@ counter = 1;
 while (counter < MAX_PROC_NUM) do
 	state = [PROCESS_TABLE + counter * 16 + 4];
 	if (state != TERMINATED) then
-		print(counter);
 		call MOD_5;
 		break;
 	endif;

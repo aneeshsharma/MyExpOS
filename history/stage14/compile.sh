@@ -25,6 +25,7 @@ cd ../expl
 ./expl $DIR/idle.expl
 ./expl $DIR/even.expl
 ./expl $DIR/odd.expl
+./expl $DIR/prime.expl
 
 echo "Compliled EXPL"
 
@@ -43,6 +44,10 @@ cd ../xfs-interface
 
 ./xfs-interface load --idle $DIR/idle.xsm
 ./xfs-interface load --init $DIR/even.xsm
+./xfs-interface rm odd.xsm
+./xfs-interface rm prime.xsm
+./xfs-interface load --exec $DIR/odd.xsm
+./xfs-interface load --exec $DIR/prime.xsm
 
 echo "Loaded files to disk succesfully"
 echo "Run the xsm machine to test"
