@@ -1,0 +1,195 @@
+// library
+loadi(63, 13);
+loadi(64, 14);
+
+// timer
+loadi(4, 17);
+loadi(5, 18);
+
+// int7
+loadi(16, 29);
+loadi(17, 30);
+
+// scheduler
+loadi(50, 63);
+loadi(51, 64);
+
+// resource manager
+loadi(40, 53);
+loadi(41, 54);
+
+// device manager
+loadi(48, 61);
+loadi(49, 62);
+
+// init
+loadi(65, 7);
+loadi(66, 8);
+
+// odd
+loadi(90, 70);
+
+// prime
+loadi(100, 71);
+
+// exit routine
+loadi(22, 35);
+loadi(23, 36);
+
+// exception handler
+loadi(2, 15);
+loadi(3, 16);
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+// page table
+// init
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 78;
+[PTBR+5] = "0110";
+[PTBR+6] = 79;
+[PTBR+7] = "0110";
+
+// Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = 66;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 76;
+[PTBR+17] = "0110";
+[PTBR+18] = 77;
+[PTBR+19] = "0110";
+
+PTBR = PAGE_TABLE_BASE + 40;
+
+// odd.xsm
+// library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 83;
+[PTBR+5] = "0110";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+// Code
+[PTBR+8] = 90;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 85;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0000";
+
+PTBR = PAGE_TABLE_BASE + 60;
+
+// prime.xsm
+// library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 102;
+[PTBR+5] = "0110";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+// Code
+[PTBR+8] = 100;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 101;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0000";
+
+alias pid R2;
+alias process_table R3;
+
+process_table = PROCESS_TABLE + 16 * 1;
+
+// Process Table
+// init
+[process_table + 1] = 1;
+[process_table + 4] = CREATED;
+[process_table + 11] = 80;
+[process_table + 12] = 0;
+[process_table + 13] = 8 * 512;
+[process_table + 14] = PAGE_TABLE_BASE + 20;
+[process_table + 15] = 10;
+
+process_table = PROCESS_TABLE + 16 * 2;
+
+// odd.xsm
+[process_table + 1] = 2;
+[process_table + 4] = CREATED;
+[process_table + 11] = 86;
+[process_table + 12] = 0;
+[process_table + 13] = 8 * 512;
+[process_table + 14] = PAGE_TABLE_BASE + 40;
+[process_table + 15] = 10;
+
+process_table = PROCESS_TABLE + 16 * 3;
+
+// prime.xsm
+[process_table + 1] = 3;
+[process_table + 4] = CREATED;
+[process_table + 11] = 103;
+[process_table + 12] = 0;
+[process_table + 13] = 8 * 512;
+[process_table + 14] = PAGE_TABLE_BASE + 60;
+[process_table + 15] = 10;
+
+pid = 4;
+while (pid < MAX_PROC_NUM) do
+	process_table = PROCESS_TABLE + 16 * pid;
+	[process_table + 4] = TERMINATED;
+	pid = pid + 1;
+endwhile;
+
+// terminal status to 0
+[TERMINAL_STATUS_TABLE] = 0;
+
+// entry point for init
+[76*512] = [65*512 + 1];
+
+// entry point for odd.xsm
+[85*512] = [90*512 + 1];
+
+// entry point for prime.xsm
+[101*512] = [100*512 + 1];
+
+print "Boot";
+
+return;
