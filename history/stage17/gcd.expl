@@ -1,0 +1,22 @@
+int main() {
+decl
+	int num1, num2, r;
+enddecl
+begin
+	write("Num 1-");
+	read(num1);
+	write("Num 2-");
+	read(num2);
+
+	while (num2 > 0) do
+		r = num1 % num2;
+		num1 = num2;
+		num2 = r;
+	endwhile;
+
+	write("GCD-");
+	write(num1);
+
+	return 0;
+end
+}

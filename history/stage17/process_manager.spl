@@ -1,0 +1,57 @@
+alias function R1;
+alias currentPID R2;
+alias page R3;
+alias page_table R4;
+alias counter R5;
+if (function == FREE_USER_AREA_PAGE) then
+	page = [PROCESS_TABLE + 16 * currentPID + 11];
+	multipush(R1, R2, R3);
+	R1 = RELEASE_PAGE;
+	R2 = page;
+	call MOD_2;
+	multipop(R1, R2, R3);
+endif;
+
+if (function == EXIT_PROCESS) then
+	// free page table
+	multipush(R1, R2);
+	R1 = FREE_PAGE_TABLE;
+	// pid already in R2
+	call MOD_1;
+	multipop(R1, R2);
+
+	// free user area page
+	multipush(R1, R2);
+	R1 = FREE_USER_AREA_PAGE;
+	// pid already in R2
+	call MOD_1;
+	multipop(R1, R2);
+
+	[PROCESS_TABLE + 16 * currentPID + 4] = TERMINATED;
+endif;
+
+if (function == FREE_PAGE_TABLE) then
+	page_table = PAGE_TABLE_BASE + 20 * currentPID;
+	[page_table + 0] = -1;
+	[page_table + 1] = "0000";
+	[page_table + 2] = -1;
+	[page_table + 3] = "0000";
+
+	counter = 2;
+	while (counter < 10) do
+		page = [page_table + counter * 2];
+		multipush(R1, R2, R3, R4, R5);
+		R1 = RELEASE_PAGE;
+		R2 = page;
+		call MOD_2;
+		multipop(R1, R2, R3, R4, R5);
+
+		[page_table + counter * 2] = -1;
+		[page_table + counter * 2 + 1] = "0000";
+
+		counter = counter + 1;
+	endwhile;
+endif;
+
+return;
+
