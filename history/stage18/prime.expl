@@ -1,0 +1,40 @@
+decl
+int isprime(int x);
+enddecl
+int isprime(int x)
+{
+decl
+	int limit, i, flag;
+enddecl
+begin
+	limit = x / 2;
+	i = 2;
+	flag = 1;
+	while (i < limit) do
+		if ((x%i) == 0) then
+			flag = 0;
+			break;
+		endif;
+		i = i + 1;
+	endwhile;
+	return flag;
+end
+}
+
+int main()
+{
+decl
+	int counter, f;
+enddecl	
+begin
+	counter = 2;
+	while (counter <= 100) do
+		f = isprime(counter);
+		if (f == 1) then
+			write(counter);
+		endif;
+		counter = counter + 1;
+	endwhile;
+	return 0;
+end
+}

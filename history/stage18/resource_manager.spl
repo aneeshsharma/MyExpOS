@@ -1,0 +1,50 @@
+alias functionNum R1;
+alias currentPID R2;
+alias process_table R3;
+
+if (functionNum == ACQUIRE_TERMINAL) then
+	while ([TERMINAL_STATUS_TABLE] == 1) do
+		process_table = PROCESS_TABLE + 16 * currentPID;
+		[process_table + 4] = WAIT_TERMINAL;
+		multipush(R1, R2, R3);
+		call MOD_5;
+		multipop(R1, R2, R3);
+	endwhile;
+	[TERMINAL_STATUS_TABLE] = 1;
+	[TERMINAL_STATUS_TABLE + 1] = currentPID;
+endif;
+
+if (functionNum == RELEASE_TERMINAL) then
+	if ([TERMINAL_STATUS_TABLE + 1] != currentPID) then
+		R0 = -1;
+		print "Error";
+		return;
+	endif;
+	[TERMINAL_STATUS_TABLE] = 0;
+
+	alias counter R7;
+	counter = 0;
+	while (counter < MAX_PROC_NUM) do
+		process_table = PROCESS_TABLE + 16 * counter;
+		if ([process_table + 4]  == WAIT_TERMINAL) then
+			[process_table + 4] = READY;
+		endif;
+		counter = counter + 1;
+	endwhile;
+	R0 = 0;
+endif;
+
+if (functionNum == ACQUIRE_DISK) then
+	while ([DISK_STATUS_TABLE] == 1) do
+		process_table = PROCESS_TABLE + 16 * currentPID;
+		[process_table + 4] = WAIT_DISK;
+		multipush(R1, R2, R3);
+		call MOD_5;
+		multipop(R1, R2, R3);
+	endwhile;
+
+	[DISK_STATUS_TABLE] = 1;
+	[DISK_STATUS_TABLE + 4] = currentPID;
+endif;
+
+return;

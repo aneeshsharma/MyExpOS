@@ -1,0 +1,12 @@
+int main() {
+decl
+	int num;
+enddecl
+begin
+	write("Num-");
+	read(num);
+	write("Value");
+	write(num);
+	return 0;
+end
+}
