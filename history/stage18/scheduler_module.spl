@@ -1,7 +1,6 @@
 alias currentPID R0;
 alias process_table_entry R1;
 multipush(BP);
-
 currentPID = [SYSTEM_STATUS_TABLE + 1];
 process_table_entry = PROCESS_TABLE + currentPID * 16;
 
@@ -32,9 +31,23 @@ while (counter != currentPID) do
 
 	counter = counter + 1;
 	if (counter >= MAX_PROC_NUM) then
-		counter = 0;
+		counter = 1;
+	endif;
+
+	if (counter == (currentPID + 1)) then
+		counter = currentPID;
+		break;
 	endif;
 endwhile;
+
+if (counter == currentPID) then
+	process_table = PROCESS_TABLE + counter * 16;
+	if ([process_table + 4] == READY) then
+		newPID = counter;
+	else
+		newPID = 0;
+	endif;
+endif;
 
 alias new_process_table R3;
 new_process_table = PROCESS_TABLE + newPID * 16;
@@ -54,6 +67,5 @@ if([new_process_table + 4] == CREATED) then
 endif;
 
 [new_process_table + 4] = RUNNING;
-
 multipop(BP);
 return;

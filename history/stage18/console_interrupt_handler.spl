@@ -7,7 +7,6 @@ backup;
 alias reqPID R0;
 reqPID = [TERMINAL_STATUS_TABLE + 1];
 [PROCESS_TABLE + reqPID * 16 + 8] = P0;
-
 multipush(R0);
 
 // release terminal
@@ -17,7 +16,6 @@ R2 = reqPID;
 call MOD_0;
 
 multipop(R0);
-
 restore;
 
 // restore sp's default value

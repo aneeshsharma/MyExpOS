@@ -60,7 +60,6 @@ user_page = [process_table + 11];
 [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
 SP = user_page * 512 - 1;
-breakpoint;
 [process_table + 4] = RUNNING;
 [process_table + 7] = entryNo;
 

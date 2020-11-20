@@ -155,5 +155,4 @@ endwhile;
 [76*512] = [65*512 + 1];
 
 print "Boot";
-breakpoint;
 return;
