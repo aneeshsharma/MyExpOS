@@ -72,6 +72,7 @@ MOV R0, -1
 JMP _L10
 _L9:
 _L10:
+BRKP
 JMP _L2
 _L1:
 _L2:
@@ -127,6 +128,7 @@ ADD R16, 1
 MOV R3, R16
 JMP _L15
 _L16:
+BRKP
 JMP _L12
 _L11:
 _L12:

@@ -28,6 +28,7 @@ if (function == GET_FREE_PAGE) then
 	if (counter == MAX_MEM_PAGE) then
 		R0 = -1;
 	endif;
+	breakpoint;
 endif;
 
 alias page_no R2;
@@ -47,6 +48,7 @@ if (function == RELEASE_PAGE) then
 		endif;
 		i  = i + 1;
 	endwhile;
+	breakpoint;
 endif;
 
 return;
