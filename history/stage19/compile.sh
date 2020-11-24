@@ -38,6 +38,7 @@ cd ../expl
 ./expl $DIR/gcd.expl
 ./expl $DIR/init.expl
 ./expl $DIR/exc_test.expl
+./expl $DIR/test.expl
 
 echo "Compliled EXPL"
 
@@ -69,6 +70,7 @@ cd ../xfs-interface
 ./xfs-interface rm even.xsm
 ./xfs-interface rm gcd.xsm
 ./xfs-interface rm exc_test.xsm
+./xfs-interface rm test.xsm
 ./xfs-interface load --exec $DIR/odd.xsm
 ./xfs-interface load --exec $DIR/prime.xsm
 ./xfs-interface load --exec $DIR/even.xsm

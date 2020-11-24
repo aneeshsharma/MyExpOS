@@ -12,6 +12,7 @@ currentPID = [SYSTEM_STATUS_TABLE + 1];
 
 userSP = [PROCESS_TABLE + currentPID * 16 + 13];
 
+
 if ((EC != 0) || (userSP >= (PTLR * 512 - 1))) then
 	print "Fatal Error";
 	print currentPID;
@@ -43,7 +44,6 @@ endif;
 alias page_table R4;
 page_table = PAGE_TABLE_BASE + currentPID * 20;
 
-print "Page Fault";
 if (EPN >= 4) then
 	// get code page
 	multipush(R1, R2, R4, EPN);
@@ -74,8 +74,6 @@ if (EPN < 4) then
 	
 	[page_table + 6] = R0;
 	[page_table + 7] = "1110";
-	print "Heap";
-	print R0;
 endif;
 
 [PROCESS_TABLE + currentPID * 16 + 9] = 0;

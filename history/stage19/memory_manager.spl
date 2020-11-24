@@ -14,6 +14,7 @@ if (function == GET_FREE_PAGE) then
 	[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
 	alias counter R0;
+	R0 = 0;
 	while (counter < MAX_MEM_PAGE) do
 		if ([MEMORY_FREE_LIST + counter] == 0) then
 			[MEMORY_FREE_LIST + counter] = 1;
@@ -21,6 +22,7 @@ if (function == GET_FREE_PAGE) then
 		endif;
 		counter = counter + 1;
 	endwhile;
+
 
 	// R0 now has free page no
 
@@ -62,7 +64,7 @@ if (function == GET_CODE_PAGE) then
 		while (counter < 8) do
 			if ([DISK_MAP_TABLE + pid * 10 + counter] == block) then
 				page = [PAGE_TABLE_BASE + pid * 20 + 2 * counter];
-				if (page != 0) then
+				if (page != -1) then
 					R0 = page;
 					return;
 				endif;
@@ -76,7 +78,7 @@ if (function == GET_CODE_PAGE) then
 	R1 = GET_FREE_PAGE;
 	call MEMORY_MANAGER;
 	multipop(R1, R2, R3);
-
+	
 	multipush(R0, R1, R2, R3);
 	R1 = DISK_LOAD;
 	// pid already in R2

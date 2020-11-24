@@ -72,11 +72,11 @@ PTLR = 10;
 [PTBR+3] = "0100";
 
 // allocate heap
-[PTBR + 4] = 0;
-[PTBR + 5] = "0110";
+[PTBR + 4] = -1;
+[PTBR + 5] = "0000";
 
-[PTBR + 6] = 0;
-[PTBR + 7] = "0110";
+[PTBR + 6] = -1;
+[PTBR + 7] = "0000";
 
 // allocate stack
 multipush(R1, R2, R5, R6, R8, R9);
@@ -107,8 +107,8 @@ endif;
 alias counter R11;
 counter = 0;
 while (counter < noBlocks) do	
-	[PTBR + 8 + counter * 2] = 0;
-	[PTBR + 9 + counter * 2] = "0100";
+	[PTBR + 8 + counter * 2] = -1;
+	[PTBR + 9 + counter * 2] = "0000";
 	counter = counter + 1;
 endwhile;
 
@@ -122,6 +122,7 @@ multipop(R1, R2, R5, R6, R8, R9, R10, R11);
 
 // set first code page
 [PTBR + 8] = R0;
+[PTBR + 9] = "0100";
 
 // initialize disk map table
 counter = 2;
@@ -147,5 +148,4 @@ endwhile;
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
 SP = 8 * 512;
 [process_table + 9] = 0;
-breakpoint;
 ireturn;
