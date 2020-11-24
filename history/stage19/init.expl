@@ -1,0 +1,14 @@
+int main() {
+decl
+	int r;
+	str filename;
+enddecl
+begin
+	write(">>> ");
+	read(filename);
+	r = exposcall("Exec", filename);
+	write("Error -");
+	write(r);
+	return 0;
+end
+}

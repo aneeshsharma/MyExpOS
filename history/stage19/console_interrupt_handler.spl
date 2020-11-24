@@ -1,0 +1,24 @@
+// save sp's value
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
+// switch to kernel stack
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+backup;
+
+alias reqPID R0;
+reqPID = [TERMINAL_STATUS_TABLE + 1];
+[PROCESS_TABLE + reqPID * 16 + 8] = P0;
+multipush(R0);
+
+// release terminal
+R1 = 9;
+R2 = reqPID;
+
+call MOD_0;
+
+multipop(R0);
+restore;
+
+// restore sp's default value
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+
+ireturn;
