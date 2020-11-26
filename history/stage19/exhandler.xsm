@@ -67,6 +67,9 @@ JZ R16, _L5
 MOV R16, "Illegal Mem"
 PORT P1, R16
 OUT
+MOV R16, EMA
+PORT P1, R16
+OUT
 JMP _L6
 _L5:
 _L6:

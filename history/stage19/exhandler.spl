@@ -22,6 +22,7 @@ if ((EC != 0) || (userSP >= (PTLR * 512 - 1))) then
 
 	if (EC == 2) then
 		print "Illegal Mem";
+		print EMA;
 	endif;
 
 	if (EC == 3) then

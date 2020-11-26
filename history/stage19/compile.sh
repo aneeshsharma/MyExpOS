@@ -39,6 +39,9 @@ cd ../expl
 ./expl $DIR/init.expl
 ./expl $DIR/exc_test.expl
 ./expl $DIR/test.expl
+./expl $DIR/bubble.expl
+./expl $DIR/list.expl
+./expl $DIR/exp.expl
 
 echo "Compliled EXPL"
 
@@ -71,11 +74,18 @@ cd ../xfs-interface
 ./xfs-interface rm gcd.xsm
 ./xfs-interface rm exc_test.xsm
 ./xfs-interface rm test.xsm
+./xfs-interface rm bubble.xsm
+./xfs-interface rm list.xsm
+./xfs-interface rm exp.xsm
 ./xfs-interface load --exec $DIR/odd.xsm
 ./xfs-interface load --exec $DIR/prime.xsm
 ./xfs-interface load --exec $DIR/even.xsm
 ./xfs-interface load --exec $DIR/gcd.xsm
 ./xfs-interface load --exec $DIR/exc_test.xsm
 ./xfs-interface load --exec $DIR/test.xsm
+./xfs-interface load --exec $DIR/bubble.xsm
+./xfs-interface load --exec $DIR/list.xsm
+./xfs-interface load --exec $DIR/exp.xsm
+
 echo "Loaded files to disk succesfully"
 echo "Run the xsm machine to test"
