@@ -1,0 +1,119 @@
+alias function R1;
+alias currentPID R2;
+alias page R3;
+alias page_table R4;
+alias counter R5;
+alias block R6;
+if (function == FREE_USER_AREA_PAGE) then
+	page = [PROCESS_TABLE + 16 * currentPID + 11];
+	multipush(R1, R2, R3);
+	R1 = RELEASE_PAGE;
+	R2 = page;
+	call MEMORY_MANAGER;
+	multipop(R1, R2, R3);
+endif;
+
+if (function == EXIT_PROCESS) then
+	// free page table
+	multipush(R1, R2);
+	R1 = FREE_PAGE_TABLE;
+	// pid already in R2
+	call PROCESS_MANAGER;
+	multipop(R1, R2);
+	// free user area page
+	multipush(R1, R2);
+	R1 = FREE_USER_AREA_PAGE;
+	// pid already in R2
+	call PROCESS_MANAGER;
+	multipop(R1, R2);
+	[PROCESS_TABLE + 16 * currentPID + 4] = TERMINATED;
+endif;
+
+if (function == FREE_PAGE_TABLE) then
+	page_table = PAGE_TABLE_BASE + 20 * currentPID;
+	[page_table + 0] = -1;
+	[page_table + 1] = "0000";
+	[page_table + 2] = -1;
+	[page_table + 3] = "0000";
+
+	counter = 2;
+	while (counter < 10) do
+		page = [page_table + counter * 2];
+		multipush(R1, R2, R3, R4, R5);
+		R1 = RELEASE_PAGE;
+		R2 = page;
+		call MEMORY_MANAGER;
+		multipop(R1, R2, R3, R4, R5);
+
+		[page_table + counter * 2] = -1;
+		[page_table + counter * 2 + 1] = "0000";
+
+		counter = counter + 1;
+	endwhile;
+	
+	block =	[DISK_MAP_TABLE + currentPID * 10 + 2];
+	if (block != -1) then
+		multipush(R1, R2);
+		R1 = RELEASE_BLOCK;
+		R2 = block;
+		call MEMORY_MANAGER;
+		multipop(R1, R2);
+	endif;
+
+	block =	[DISK_MAP_TABLE + currentPID * 10 + 3];
+	if (block != -1) then
+		multipush(R1, R2);
+		R1 = RELEASE_BLOCK;
+		R2 = block;
+		call MEMORY_MANAGER;
+		multipop(R1, R2);
+	endif;
+	
+	block =	[DISK_MAP_TABLE + currentPID * 10 + 8];
+	if (block != -1) then
+		multipush(R1, R2);
+		R1 = RELEASE_BLOCK;
+		R2 = block;
+		call MEMORY_MANAGER;
+		multipop(R1, R2);
+	endif;
+	
+	block =	[DISK_MAP_TABLE + currentPID * 10 + 9];
+	if (block != -1) then
+		multipush(R1, R2);
+		R1 = RELEASE_BLOCK;
+		R2 = block;
+		call MEMORY_MANAGER;
+		multipop(R1, R2);
+	endif;
+
+	counter = 2;
+	while (counter < 10) do
+		[DISK_MAP_TABLE + currentPID * 10 + counter] = -1;
+		counter = counter + 1;
+	endwhile;
+endif;
+
+alias process_table R7;
+
+if (function == GET_PCB_ENTRY) then
+	counter = 0;
+	while (counter < MAX_PROC_NUM) do
+		process_table = PROCESS_TABLE + counter * 16;
+		if ([process_table + 4] == TERMINATED) then
+			[process_table + 1] = counter;
+			[process_table + 4] = ALLOCATED;
+			[process_table + 14] = PAGE_TABLE_BASE + counter * 20;
+			[process_table + 15] = 10;
+			R0 = counter;
+			return;
+		endif;
+		counter = counter + 1;
+	endwhile;
+
+	R0 = -1;
+	return;
+endif;
+
+return;
+
