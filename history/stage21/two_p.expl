@@ -1,0 +1,30 @@
+int main()
+{
+decl
+	int temp, num, p;
+enddecl
+begin
+	num = 1;
+	p = exposcall("Fork");
+	if (p == 0) then
+		while (num <= 100) do
+			if((num%2)==0) then
+				write(num);
+			endif;
+			num = num + 1;
+		endwhile;
+	endif;
+	
+	if (p > 0) then
+		while (num <= 100) do
+			if((num%2)!=0) then
+				write(num);
+			endif;
+			num = num + 1;
+		endwhile;
+	endif;
+
+
+	return 0;
+end
+}

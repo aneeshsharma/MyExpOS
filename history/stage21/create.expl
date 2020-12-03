@@ -1,0 +1,24 @@
+int main() {
+decl
+	int r, t;
+enddecl
+begin
+	write("Forking");
+	r = exposcall("Fork");
+	if (r == -1) then
+		write("Failed");
+	endif;
+
+	if (r > 0) then
+		write("Created");
+		write(r);
+		t = exposcall("Exec", "even.xsm");
+	endif;
+
+	if (r == 0) then
+		write("Child");
+		t = exposcall("Exec", "odd.xsm");
+	endif;
+	return 0;
+end
+}

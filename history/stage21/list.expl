@@ -1,0 +1,39 @@
+type 
+  node {
+    int value;
+    node next;
+  }
+endtype
+int main() {
+  decl
+    int temp, num, i;
+    node head, cur;
+  enddecl
+
+  begin
+    temp = initialize();
+    head = alloc();
+
+    write("Size-");
+    read(num);
+    i = 0;
+    cur = head;
+	write("Elements-");
+    while ( i < num ) do
+        cur.next  =  alloc();
+        cur = cur.next;
+		temp = exposcall("Read", -1, cur.value);
+        i = i+1;
+    endwhile;
+	
+	write("Values-");
+    cur = head.next;
+    while ( cur != null ) do
+      temp = exposcall("Write", -2, cur.value);
+      cur = cur.next;
+    endwhile;
+
+    return 0;
+
+  end
+}

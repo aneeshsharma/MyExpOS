@@ -1,0 +1,46 @@
+int main() {
+decl
+	int r, pid, flag;
+	str command;
+enddecl
+begin
+	while (1 == 1) do
+		write(">>> ");
+		read(command);
+
+		pid = exposcall("Fork");
+
+		if (pid == -1) then
+			write("Fork Error");
+		endif;
+
+		if (pid == 0) then
+			flag = 0;
+			if (command == "Shutdown") then
+				flag = 1;
+				r = exposcall("Shutdown");
+			endif;
+
+			if (command == "hello") then
+				flag = 1;
+				write("Hi");
+			endif;
+		
+			r = 0;
+			if (flag == 0) then
+				r = exposcall("Exec", command);
+			endif;
+
+			if (r == -1) then
+				write("BAD COMMAND");
+			endif;
+
+			r = exposcall("Exit");
+		else
+			r = exposcall("Wait", pid);
+		endif;
+	endwhile;
+			
+	return 0;
+end
+}
