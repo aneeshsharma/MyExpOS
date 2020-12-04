@@ -1,0 +1,135 @@
+alias userSP R1;
+alias currentPID R2;
+alias process_table R3;
+userSP = SP;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+process_table = PROCESS_TABLE + currentPID * 16;
+[process_table + 13] = userSP;
+
+SP = [process_table + 11] * 512 - 1;
+
+alias logicalAddress R4;
+alias physicalAddress R5;
+
+alias function R6;
+
+logicalAddress = userSP - 5;
+physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+
+function = [physicalAddress];
+
+if (function == INT_SEMLOCK) then
+	[process_table + 9] = INT_SEMLOCK;
+
+	alias entry R6;
+	alias userPage R7;
+	alias table R8;
+
+	userPage = [process_table + 11];
+	table = (userPage + 1) * 512 - 16;
+
+	logicalAddress = userSP - 4;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+
+	entry = [physicalAddress];
+	
+	if ((entry >= 8) || (entry < 0) || ([table + entry * 2] != 1)) then
+		logicalAddress = userSP - 1;
+		physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+		[physicalAddress] = -1;
+		[process_table + 9] = 0;
+		SP = userSP;
+		ireturn;
+	endif;
+
+
+	alias index R9;
+	alias sem_table R10;
+	index = [table + entry * 2 + 1];
+	sem_table = SEMAPHORE_TABLE + 4 * index;
+	while (([sem_table] != currentPID) && ([sem_table] != -1)) do
+		[process_table + 4] = WAIT_SEMAPHORE;
+		[process_table + 5] = index;
+		multipush(R1, R2, R3, R6, R7, R8, R9, R10);
+		call SCHEDULER;
+		multipop(R1, R2, R3, R6, R7, R8, R9, R10);
+	endwhile;
+
+	[sem_table] = currentPID;
+	
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = 0;
+	[process_table + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+if (function == INT_SEMUNLOCK) then
+	[process_table + 9] = INT_SEMUNLOCK;
+	
+	alias entry R6;
+	alias userPage R7;
+	alias table R8;
+
+	userPage = [process_table + 11];
+	table = (userPage + 1) * 512 - 16;
+
+	logicalAddress = userSP - 4;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+
+	entry = [physicalAddress];
+	
+	if ((entry >= 8) || (entry < 0) || ([table + entry * 2] != 1)) then
+		logicalAddress = userSP - 1;
+		physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+		[physicalAddress] = -1;
+		[process_table + 9] = 0;
+		SP = userSP;
+		ireturn;
+	endif;
+
+
+	alias index R9;
+	alias sem_table R10;
+	index = [table + entry * 2 + 1];
+	sem_table = SEMAPHORE_TABLE + 4 * index;
+	if ([sem_table] != -1) then
+		if ([sem_table] != currentPID) then
+			logicalAddress = userSP - 1;
+			physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+			[physicalAddress] = -2;
+			[process_table + 9] = 0;
+			SP = userSP;
+			ireturn;
+		endif;
+
+		[sem_table] = -1;
+
+		alias counter R11;
+		alias p_table R12;
+		counter = 0;
+		while (counter < MAX_PROC_NUM) do
+			p_table = PROCESS_TABLE + 16 * counter;
+			if (([p_table + 4] == WAIT_SEMAPHORE) && ([p_table + 5] == index)) then
+				[p_table + 4] = READY;
+			endif;
+			counter = counter + 1;
+		endwhile;
+	endif;
+	
+
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = 0;
+	[process_table + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+logicalAddress = userSP - 1;
+physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+[physicalAddress] = -1;
+[process_table + 9] = 0;
+SP = userSP;
+ireturn;

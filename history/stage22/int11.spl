@@ -1,0 +1,99 @@
+alias userSP R1;
+alias currentPID R2;
+alias process_table R3;
+userSP = SP;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+process_table = PROCESS_TABLE + currentPID * 16;
+[process_table + 13] = userSP;
+
+SP = [process_table + 11] * 512 - 1;
+
+alias logicalAddress R4;
+alias physicalAddress R5;
+
+alias function R6;
+
+logicalAddress = userSP - 5;
+physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+
+function = [physicalAddress];
+
+if (function == INT_WAIT) then
+	[process_table + 9] = INT_WAIT;
+	alias wait_pid R7;
+	
+	logicalAddress = userSP - 4;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+
+	wait_pid = [physicalAddress];
+
+
+	if (([PROCESS_TABLE + 16 * wait_pid + 4] == TERMINATED) || (wait_pid == currentPID) || (wait_pid >= MAX_PROC_NUM)) then
+		logicalAddress = userSP - 1;
+		physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+		[physicalAddress] = -1;
+		[process_table + 9] = 0;
+		SP = userSP;
+		ireturn;
+	endif;
+	
+	[process_table + 4] = WAIT_PROCESS;
+	[process_table + 5] = wait_pid;
+
+	multipush(R1, R2, R3, R6, R7);
+	call SCHEDULER;
+	multipop(R1, R2, R3, R6, R7);
+
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = 0;
+	[process_table + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+if (function == INT_SIGNAL) then
+	[process_table + 9] = INT_SIGNAL;
+
+	alias counter R7;
+	alias table R8;
+	counter = 0;
+	while (counter < MAX_PROC_NUM) do
+		table = PROCESS_TABLE + 16 * counter;
+		if (([table + 4] == WAIT_PROCESS) && ([table + 5] == currentPID)) then
+			[table + 4] = READY;
+		endif;
+		counter = counter + 1;
+	endwhile;
+
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = 0;
+	[process_table + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+if (function == INT_GETPID) then
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = [process_table + 1];
+	SP = userSP;
+	ireturn;
+endif;
+
+if (function == INT_GETPID) then
+	logicalAddress = userSP - 1;
+	physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+	[physicalAddress] = [process_table + 2];
+	SP = userSP;
+	ireturn;
+endif;
+
+logicalAddress = userSP - 1;
+physicalAddress = [PTBR + 2 * (logicalAddress / 512)] * 512 + (logicalAddress % 512);
+[physicalAddress] = -1;
+[process_table + 9] = 0;
+SP = userSP;
+ireturn;
+

@@ -1,0 +1,149 @@
+alias userSP R1;
+alias currentPID R2;
+userSP = SP;
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 9;
+
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+
+alias logicalAddress R3;
+alias physicalAddress R4;
+alias filename R5;
+
+logicalAddress = userSP - 4;
+physicalAddress = ([PTBR + 2 * (logicalAddress / 512)] * 512) + (logicalAddress % 512);
+
+filename = [physicalAddress];
+
+
+alias entryNo R6;
+alias entry R7;
+entryNo = 0;
+while (entryNo < MAX_FILE_NUM) do
+	entry = INODE_TABLE + 16 * entryNo;
+	if ([entry] == EXEC) then
+		if ([entry + 1] == filename) then
+			break;
+		endif;
+	endif;
+	entryNo = entryNo + 1;
+endwhile;
+
+// no executable found
+if (entryNo == MAX_FILE_NUM) then
+	logicalAddress = userSP - 1;
+	physicalAddress = ([PTBR + 2 * (logicalAddress / 512)] * 512) + (logicalAddress % 512);
+	[physicalAddress] = -1;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+	SP = userSP;
+	ireturn;
+endif;
+
+multipush(R1, R2, R5, R6);
+R1 = EXIT_PROCESS;
+// R2 already has current PID
+call PROCESS_MANAGER;
+multipop(R1, R2, R5, R6);
+
+alias process_table R8;
+alias user_page R9;
+
+process_table = PROCESS_TABLE + 16 * currentPID;
+user_page = [process_table + 11];
+
+// reclaim user area page
+[MEMORY_FREE_LIST + user_page] = [MEMORY_FREE_LIST + user_page] + 1;
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+SP = user_page * 512 - 1;
+[process_table + 4] = RUNNING;
+[process_table + 7] = entryNo;
+
+PTBR = PAGE_TABLE_BASE + 20 * currentPID;
+PTLR = 10;
+
+// allocate pages to new process
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// allocate heap
+[PTBR + 4] = -1;
+[PTBR + 5] = "0000";
+
+[PTBR + 6] = -1;
+[PTBR + 7] = "0000";
+
+// allocate stack
+multipush(R1, R2, R5, R6, R8, R9);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R1, R2, R5, R6, R8, R9);
+
+[PTBR + 16] = R0;
+[PTBR + 17] = "0110";
+
+multipush(R1, R2, R5, R6, R8, R9);
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;
+multipop(R1, R2, R5, R6, R8, R9);
+
+[PTBR + 18] = R0;
+[PTBR + 19] = "0110";
+
+alias noBlocks R10;
+// calculate no of blocks occupied
+entry = INODE_TABLE + 16 * entryNo;
+noBlocks = 1 + ([entry + 2] / 512);
+if (noBlocks > 4) then
+	print "TooBig";
+	noBlocks = 4;
+endif;
+
+alias counter R11;
+counter = 0;
+while (counter < noBlocks) do	
+	[PTBR + 8 + counter * 2] = -1;
+	[PTBR + 9 + counter * 2] = "0000";
+	counter = counter + 1;
+endwhile;
+
+// load first code page
+multipush(R1, R2, R5, R6, R8, R9, R10, R11);
+R1 = GET_CODE_PAGE;
+// pid already in R2
+R3 = [INODE_TABLE + 16 * entryNo + 8];
+call MEMORY_MANAGER;
+multipop(R1, R2, R5, R6, R8, R9, R10, R11);
+
+// set first code page
+[PTBR + 8] = R0;
+[PTBR + 9] = "0100";
+
+// initialize disk map table
+counter = 2;
+while (counter < 10) do
+	[DISK_MAP_TABLE + currentPID * 10 + counter] = -1;
+	counter = counter + 1;
+endwhile;
+
+// set code blocks in disk map table
+counter = 0;
+while (counter < 4) do
+	[DISK_MAP_TABLE + currentPID * 10 + 4 + counter] = [INODE_TABLE + 16 * entryNo + 8 + counter];
+	counter = counter + 1;
+endwhile;
+
+// per process resource table
+counter = 1;
+while (counter <= 8) do
+	[user_page * 512 + 512 - counter * 2] = -1;
+	counter = counter + 1;
+endwhile;
+
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+SP = 8 * 512;
+[process_table + 9] = 0;
+ireturn;

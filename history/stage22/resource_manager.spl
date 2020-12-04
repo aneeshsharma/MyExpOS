@@ -1,0 +1,95 @@
+alias functionNum R1;
+alias currentPID R2;
+alias process_table R3;
+
+if (functionNum == ACQUIRE_TERMINAL) then
+	while ([TERMINAL_STATUS_TABLE] == 1) do
+		process_table = PROCESS_TABLE + 16 * currentPID;
+		[process_table + 4] = WAIT_TERMINAL;
+		multipush(R1, R2, R3);
+		call MOD_5;
+		multipop(R1, R2, R3);
+	endwhile;
+	[TERMINAL_STATUS_TABLE] = 1;
+	[TERMINAL_STATUS_TABLE + 1] = currentPID;
+endif;
+
+if (functionNum == RELEASE_TERMINAL) then
+	if ([TERMINAL_STATUS_TABLE + 1] != currentPID) then
+		R0 = -1;
+		print "Error";
+		return;
+	endif;
+	[TERMINAL_STATUS_TABLE] = 0;
+	alias counter R7;
+	counter = 0;
+	while (counter < MAX_PROC_NUM) do
+		process_table = PROCESS_TABLE + 16 * counter;
+		if ([process_table + 4]  == WAIT_TERMINAL) then
+			[process_table + 4] = READY;
+		endif;
+		counter = counter + 1;
+	endwhile;
+	R0 = 0;
+endif;
+
+if (functionNum == ACQUIRE_DISK) then
+	while ([DISK_STATUS_TABLE] == 1) do
+		process_table = PROCESS_TABLE + 16 * currentPID;
+		[process_table + 4] = WAIT_DISK;
+		multipush(R1, R2, R3);
+		call MOD_5;
+		multipop(R1, R2, R3);
+	endwhile;
+
+	[DISK_STATUS_TABLE] = 1;
+	[DISK_STATUS_TABLE + 4] = currentPID;
+endif;
+
+if (functionNum == ACQUIRE_SEMAPHORE) then
+	alias counter R7;
+	alias table R8;
+	counter = 0;
+	while (counter < MAX_SEM_COUNT) do
+		table = SEMAPHORE_TABLE + 4 * counter;
+		if ([table + 1] == 0) then
+			break;
+		endif;
+		counter = counter + 1;
+	endwhile;
+
+	if (counter >= MAX_SEM_COUNT) then
+		R0 = -1;
+		return;
+	endif;
+
+	[table + 1] = 1;
+	[table + 0] = -1;
+	R0 = counter;
+	return;
+endif;
+
+if (functionNum == RELEASE_SEMAPHORE) then
+	alias entry R3;
+	alias counter R7;
+	alias table R8;
+	alias p_table R9;
+	table = SEMAPHORE_TABLE + 4 * entry;
+	
+	if ([table] == currentPID) then
+		[table] = -1;
+		counter = 0;
+		while (counter < MAX_PROC_NUM) do
+			p_table = PROCESS_TABLE + 16 * counter;
+			if (([p_table + 4] == WAIT_SEMAPHORE) && ([p_table + 5] == entry)) then
+				[p_table + 4] = READY;
+			endif;
+			counter = counter + 1;
+		endwhile;
+	endif;
+
+	[table + 1] = [table + 1] - 1;
+	return;
+endif;
+
+return;

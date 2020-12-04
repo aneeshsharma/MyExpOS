@@ -1,0 +1,64 @@
+alias functionNum R1;
+alias currentPID R2;
+alias word R3;
+
+if (functionNum == TERMINAL_WRITE) then
+	// acquire terminal
+	multipush(R1, R2, R3);
+	R1 = ACQUIRE_TERMINAL;
+	// pid already in R2
+	call MOD_0;
+	multipop(R1, R2, R3);
+	
+	// print value
+	print(word);
+	
+	// release terminal
+	multipush(R1, R2, R3);
+	R1 = RELEASE_TERMINAL;
+	// pid already in R2
+	call MOD_0;
+	multipop(R1, R2, R3);
+endif;
+
+alias page_table R4;
+alias physical_address R5;
+if (functionNum == TERMINAL_READ) then
+	multipush(R1, R2, R3);
+	R1 = ACQUIRE_TERMINAL;
+	// pid already in R2
+	call MOD_0;
+	multipop(R1, R2, R3);	
+	read;
+	
+	[PROCESS_TABLE + currentPID * 16 + 4] = WAIT_TERMINAL;
+	multipush(R1, R2, R3);
+	call MOD_5;
+	multipop(R1, R2, R3);
+	page_table = PAGE_TABLE_BASE + 20 * currentPID;
+	physical_address = ([page_table + 2 * (word / 512)] * 512) + (word % 512);
+	[physical_address] = [PROCESS_TABLE + currentPID * 16 + 8];
+endif;
+
+alias page_no R3;
+alias block_no R4;
+alias process_table R5;
+
+if (functionNum == DISK_LOAD) then
+	multipush(R1, R2, R3, R4, R5);
+	R1 = ACQUIRE_DISK;
+	call MOD_0;
+	multipop(R1, R2, R3, R4, R5);
+
+	[DISK_STATUS_TABLE + 1] = 0;
+	[DISK_STATUS_TABLE + 2] = page_no;
+	[DISK_STATUS_TABLE + 3] = block_no;
+
+	load(page_no, block_no);
+	
+	process_table = PROCESS_TABLE + 16 * currentPID;
+	[process_table + 4] = WAIT_DISK;
+
+	call MOD_5;
+endif;
+return;
